@@ -1,9 +1,12 @@
 name: Sync Fork
 
+permissions:
+  contents: write
+
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每 6 小时自动同步一次
-  workflow_dispatch:        # 允许你手动触发
+    - cron: '0 */6 * * *'   # 每 6 小时同步一次
+  workflow_dispatch:        # 允许手动触发
 
 jobs:
   sync:
@@ -11,20 +14,29 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
 
-      - name: Add upstream
+      - name: Configure git user
         run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure upstream remote and fetch
+        run: |
+          git remote remove upstream || true
           git remote add upstream https://github.com/mtvpls/MoonTVPlus.git
-          git fetch upstream
+          git fetch upstream --prune
 
-      - name: Merge upstream changes
+      - name: Merge upstream into default branch
         run: |
-          git checkout main
-          git merge upstream/main --allow-unrelated-histories || true
+          DEFAULT_BRANCH=main
+          # 如果你的默认分支不是 main，请把上面改为你的分支名
+          git checkout $DEFAULT_BRANCH
+          git merge --no-edit upstream/$DEFAULT_BRANCH
 
-      - name: Push changes
+      - name: Push changes to origin
         run: |
-          git push origin main
+          git push origin HEAD:$DEFAULT_BRANCH
