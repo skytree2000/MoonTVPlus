@@ -5,12 +5,14 @@ permissions:
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # 每 6 小时同步一次
-  workflow_dispatch:        # 允许手动触发
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   sync:
     runs-on: ubuntu-latest
+    env:
+      DEFAULT_BRANCH: main    # 在 job 级别定义，所有 steps 可用
 
     steps:
       - name: Checkout
@@ -32,10 +34,8 @@ jobs:
 
       - name: Merge upstream into default branch
         run: |
-          DEFAULT_BRANCH=main
-          # 如果你的默认分支不是 main，请把上面改为你的分支名
           git checkout $DEFAULT_BRANCH
-          git merge --no-edit upstream/$DEFAULT_BRANCH
+          git merge --no-edit upstream/$DEFAULT_BRANCH || true
 
       - name: Push changes to origin
         run: |
