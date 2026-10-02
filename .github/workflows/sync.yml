@@ -20,6 +20,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+          token: ${{ secrets.SYNC_TOKEN }}
 
       - name: Configure git user
         run: |
@@ -35,7 +36,7 @@ jobs:
       - name: Merge upstream into default branch
         run: |
           git checkout $DEFAULT_BRANCH
-          git merge --no-edit upstream/$DEFAULT_BRANCH || true
+          git merge --no-edit upstream/$DEFAULT_BRANCH
 
       - name: Push changes to origin
         run: |
